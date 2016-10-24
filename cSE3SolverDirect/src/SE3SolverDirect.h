@@ -88,7 +88,9 @@ public:
 		pT=T(P[i],theta);
 		return Q[i]-pT;
 	}
-	inlinen Mat Jproj()
+	inline Mat Jproj(){
+		return Mat();
+	}
 	// Jacobian of residual with respect to theta at 0
 	inline Mat Jr(int i,Tangent &theta){
 		return -JT(P[i],theta);
@@ -110,7 +112,7 @@ public:
 		Mat d2Img;
 		multiply(dImg,dImg,d2Img);
 		S e=cv::sum(d2Img);
-		return e/(d2Img.rows+d2Img*cols);
+		return e/(d2Img.rows+d2Img.cols);
 	}
 	// Less squares gradient
 	inline Mat GEls(Tangent &theta){

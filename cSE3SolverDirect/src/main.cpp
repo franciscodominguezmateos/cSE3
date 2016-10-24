@@ -6,19 +6,19 @@
 #include <opencv2/viz.hpp>
 
 #include <cassert>
-#include "rigid_transformation.h"
+//#include "rigid_transformation.h"
 #include "SE3Group.h"
-#include "SE3Solver.h"
+//#include "SE3Solver.h"
 #include "SE3SolverDirect.h"
 
 using namespace std;
-using namespace liegroups;
+//using namespace liegroups;
 using namespace cv;
 
 typedef double S;
-typedef SE3Solver<S> Solver;
-typedef typename SE3Solver<S>::SE3Type SE3Type;
-typedef typename SE3Solver<S>::Tangent Tangent;
+typedef SE3SolverDirect<S> Solver;
+typedef typename SE3SolverDirect<S>::SE3Type SE3Type;
+typedef typename SE3SolverDirect<S>::Tangent Tangent;
 
 void setPose(viz::Viz3d w,string name,SE3Type pose){
 	cv::Affine3d a(pose.asMat());
@@ -36,7 +36,7 @@ string to_string(float i){
 	return result;
 }
 int main()
-{
+{/*
 	Solver solver;
 	viz::Viz3d myWindow("Estimation Coordinate Frame");
 	//myWindow.setBackgroundColor(); // black by default
@@ -104,12 +104,12 @@ int main()
         	setPose(myWindow,to_string(i),theta);
         	delete wcp;
         }
-/*
+
         cout << "Els=" << els;
         cout << " GEls="<< gels.t()<<endl;
         cout << "dThetaAlpha=" << dThetaAlpha.exp().asMat() <<endl;
         cout << "theta=" << theta.exp().asMat() <<endl;
-*/
+
         i++;
     }
     cout << "vp1" << vp1 << endl;
@@ -144,4 +144,5 @@ int main()
 
     myWindow.spin();
 	return 0;
+*/
 }
