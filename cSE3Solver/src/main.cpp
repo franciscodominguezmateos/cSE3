@@ -3,23 +3,22 @@
 //#include <liegroups/se3.hpp>
 
 #include <sstream>
-//#include <opencv2/viz.hpp>
+#include <opencv2/viz.hpp>
 
 #include <cassert>
-//#include "rigid_transformation.h"
+#include "rigid_transformation.h"
 #include "SE3Group.h"
-//#include "SE3Solver.h"
-#include "SE3SolverDirect.h"
+#include "SE3Solver.h"
 
 using namespace std;
-//using namespace liegroups;
+using namespace liegroups;
 using namespace cv;
 
 typedef double S;
-typedef SE3SolverDirect<S> Solver;
-typedef typename SE3SolverDirect<S>::SE3Type SE3Type;
-typedef typename SE3SolverDirect<S>::Tangent Tangent;
-/*
+typedef SE3Solver<S> Solver;
+typedef typename SE3Solver<S>::SE3Type SE3Type;
+typedef typename SE3Solver<S>::Tangent Tangent;
+
 void setPose(viz::Viz3d w,string name,SE3Type pose){
 	cv::Affine3d a(pose.asMat());
 	w.setWidgetPose(name,a);
@@ -27,7 +26,6 @@ void setPose(viz::Viz3d w,string name,SE3Type pose){
 void setPose(viz::Viz3d w,string name,Tangent pose){
 	setPose(w,name,pose.exp());
 }
-*/
 string to_string(float i){
 	string result;          // string which will contain the result
 	ostringstream convert;   // stream used for the conversion
@@ -36,80 +34,8 @@ string to_string(float i){
 	result = convert.str();
 	return result;
 }
-int main(int argc, char** argv)
+int main()
 {
-	if ( argc != 2 )
-		{
-	        printf("usage: cTSDF pathToRGBDdataset \n");
-	        return -1;
-	}
-	string basepath=argv[1];
-	vector<DepthImage> vdi1(4);
-	vector<DepthImage> vdi2(4);
-	DepthImage di1(basepath,0);
-	vdi1[0]=di1;
-	vdi1[1]=vdi1[0].pyrDown(0.5);
-	vdi1[2]=vdi1[1].pyrDown(0.5);
-	vdi1[3]=vdi1[2].pyrDown(0.5);
-	//di1=di1.pyrDown(0.5);
-	di1=vdi1[2];
-	DepthImage di2(basepath,1);
-	vdi2[0]=di2;
-	vdi2[1]=vdi2[0].pyrDown(0.5);
-	vdi2[2]=vdi2[1].pyrDown(0.5);
-	vdi2[3]=vdi2[2].pyrDown(0.5);
-	//di2=di2.pyrDown(0.5);
-	di2=vdi2[2];
-	SE3SolverDirect<S> solver;
-	di2.computeGrad();
-	solver.setI1(di1);
-	solver.setI2(di2);
-	imshow("di1",solver.getI1().getImg());
-	imshow("di2",solver.getI2().getImg());
-	Tangent t(0.0,0,0,0,0,0);
-	Mat w=solver.wrapI2(t);
-	imshow("wp",w);
-	Mat r=solver.RImg(t);
-	Mat rn;
-	normalize(r,rn, 0, 1, CV_MINMAX);
-	imshow("rn",rn);
-	float els =solver.Els (t);
-    Mat gels=solver.GEls(t);
-    Tangent dTheta=Tangent(gels);
-    Tangent dThetaAlpha=dTheta*-0.00001;
-    t+=dThetaAlpha;
-    cout << "Els=" << els;
-    cout << " GEls="<< gels.t()<<endl;
-    cout << "dThetaAlpha=" << dThetaAlpha.exp().asMat() <<endl;
-    cout << "t=" << t.exp().asMat() <<endl;
-	cv::waitKey(0);
-	int i=0;
-	Mat wpi1;
-	while(els>0.0001){
-		w=solver.wrapI2(t);
-		if(i % 2==0){
-			cv::addWeighted(di1.getImg(),0.5,w,0.5,0,wpi1);
-			imshow("wp",wpi1);
-			r=solver.RImg(t);
-			normalize(r,rn, 0, 1, CV_MINMAX);
-			imshow("rn",rn);
-			cout << i ;
-			cout << "Els=" << els;
-			cout << " GEls="<< gels.t()<<endl;
-			cv::waitKey(1);
-		}
-		els =solver.Els (t);
-		gels=solver.GEls(t);
-		dTheta=Tangent(gels);
-		dThetaAlpha=dTheta*-0.00001;
-		t+=dThetaAlpha;
-		//cout << "dThetaAlpha=" << dThetaAlpha.exp().asMat() <<endl;
-		//cout << "t=" << t.exp().asMat() <<endl;
-		i++;
-	}
-	cout << i << endl;
-	waitKey(0);
-    /*
 	Solver solver;
 	viz::Viz3d myWindow("Estimation Coordinate Frame");
 	//myWindow.setBackgroundColor(); // black by default
@@ -143,10 +69,10 @@ int main(int argc, char** argv)
     vp2.resize(vp1.size());
     cout << "Before of transform"<<endl;
     cv::perspectiveTransform(vp1,vp2,transform.matrix);
-    //transformPoints(vp2,vp1,theta);
+    //solver.transformPoints(vp2,vp1,theta);
     cout << "vp2"<<vp2 <<endl;
     vp3.resize(vp1.size());
-    solver.transformPoints(vp3,vp1,se);
+    solver.transformPoints(vp3,vp1,te);
     vector<Point3f> Q(vp3);
     cout << "vp3"<<vp3 <<endl;
     cout << "Els=" << solver.Els(vp3,vp1,se)<<endl;
@@ -163,7 +89,7 @@ int main(int argc, char** argv)
     Mat gels;
     int i=0;
     viz::WCameraPosition *wcp;
-    while(sqrt(els)>0.015 && i<10000){
+    while(sqrt(els)>0.015 && i<1000){
         solver.transformPoints(vp1,vp1,dThetaAlpha);
     	els =solver.Els (vp3,vp1,dThetaAlpha);
         gels=solver.GEls(vp3,vp1,dThetaAlpha);
@@ -217,5 +143,4 @@ int main(int argc, char** argv)
 
     myWindow.spin();
 	return 0;
-*/
 }

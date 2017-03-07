@@ -9,7 +9,9 @@
 #define SE3SOLVER_DIRECT_H_
 #include <iostream>
 #include <vector>
-#include <opencv2/core.hpp>
+//#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include "depthImage.h"
 #include "SE3Group.h"
 
@@ -27,7 +29,7 @@ class SE3SolverDirect {
 	vector<Point3f> P;//3Dpts in I1
 	vector<Point2f> U;//2Dpts valid pints in I1
 	vector<Point3f> Q;//3Dpts transformed from I1
-	vector<Point2f> V;//2Dpts projected from Q
+	vector<Point2f> W;//2Dpts projected from Q
 public:
 	typedef SE3Group<S> SE3Type;
 	typedef se3Algebra<S> Tangent;
@@ -43,18 +45,29 @@ public:
 		return Point2f(x,y);
 	}*/
 	vector<Point2f> &warp(Tangent theta){
-		P=I1.getPoints3D();
 		transformPoints(Q,P,theta);
+		W.clear();
 		for(Point3f p3D:Q){
-			U.push_back(I1.project(p3D));
+			W.push_back(I1.project(p3D));
 		}
-		return &U;
+		return W;
 	}
 	Mat wrapI2(Tangent theta){
 		I2p=Mat::zeros(I2.getImg().size(),I2.getImg().type());
-		for(Point2f p2f:warp(theta)){
-			I2p.at<Vec3b>(p2f.y,p2f.x)=I2.getColor(p2f);
+		vector<Point2f> &wp=warp(theta);
+		for(int i=0;i<U.size();i++){
+			if(I2.is2DPointInImage(W[i])){
+				Vec3b c=I2.getColor(W[i]);
+				I2p.at<Vec3b>(U[i])=c;
+			}//else cout <<"id2DPointInImage wrapI2"<<endl;
 		}
+		/*
+		for(Point2f p2f:wp){
+			if(I2.is2DPointInImage(p2f)){
+				Vec3b c=I2.getColor(p2f);
+				I2p.at<Vec3b>(p2f.y,p2f.x)=c;
+			}else cout <<"id2DPointInImage wrapI2"<<endl;
+		}*/
 		return I2p;
 	}
 	inline void setAlpha(S a){alpha=a;}
@@ -64,15 +77,16 @@ public:
 	inline Point3f T(Point3f &p,Tangent &theta){
 		return theta*p;
 	}
-	inline void transformPoints(vector<Point3f> Q,vector<Point3f> P,Tangent theta){
-		for(unsigned int i=0;i<Q.size();i++){
-			Q[i]=T(P[i],theta);
+	inline void transformPoints(vector<Point3f> &Q,vector<Point3f> P,Tangent theta){
+		Q.clear();
+		for(unsigned int i=0;i<P.size();i++){
+			Q.push_back(T(P[i],theta));
 			//cout << Q[i]<<endl;
 		}
 	}
 	//Jacobian with respect to theta at 0, of transformation function that return a 3x6 matrix
-	inline Mat JT(Point3f &p,Tangent &theta){
-		Point3f pt=T(p,theta);
+	inline Mat JT(int i){
+		Point3f pt=Q[i];
 		float &x=pt.x;
 		float &y=pt.y;
 		float &z=pt.z;
@@ -84,43 +98,77 @@ public:
 	}
 	// Residual function
 	inline S r(int i,Tangent &theta){
-		Point3f pT;
-		pT=T(P[i],theta);
-		return Q[i]-pT;
+		float dg= I2.getGray(W[i])-I1.getGray(U[i]);
+		return dg;
 	}
-	inline Mat Jproj(){
-		return Mat();
+	inline Mat rImg(Tangent &theta){
+		Mat rm=Mat::zeros(I2.getImg().size(),CV_32F);
+		for(int i=0;i<U.size();i++){
+			if(I2.is2DPointInImage(W[i])){
+				rm.at<float>(U[i])=r(i,theta);
+			}//else cout <<"id2DPointInImage rImg"<<endl;
+		}
+		return rm;
+	}
+	inline Mat Jproj(int i){
+		Point3f pt=Q[i];
+		float &x=pt.x;
+		float &y=pt.y;
+		float &z=pt.z;
+		float fx=I1.getFx();
+		float fy=I2.getFy();
+		Mat jp=(Mat_<S>(2,3)<< fx/z,   0,-fx*x/(z*z),
+				               0   ,fy/z,-fy*y/(z*z));
+		return jp;
 	}
 	// Jacobian of residual with respect to theta at 0
 	inline Mat Jr(int i,Tangent &theta){
-		return -JT(P[i],theta);
+		Mat Ji=(Mat_<S>(1,2)<<I2.getGradXImg().at<float>(W[i]),I2.getGradYImg().at<float>(W[i]));
+		return Ji*Jproj(i)*JT(i);
 	}
 	// Residual squared is the loss function for point i
 	inline S R(int i,Tangent &theta){
-		Point3f pr=r(i,Q,P,theta);
-		return pr.dot(pr);
+		S pr=r(i,theta);
+		return pr*pr;
+	}
+	inline Mat RImg(Tangent &theta){
+		Mat rm=Mat::zeros(I2.getImg().size(),CV_32F);
+		for(int i=0;i<U.size();i++){
+			if(I2.is2DPointInImage(W[i])){
+				rm.at<float>(U[i])=R(i,theta);
+			}//else cout <<"id2DPointInImage RImg"<<endl;
+		}
+		return rm;
 	}
 	// Gradient of loss function with respect to theta in order to do gradient descent
 	inline Mat GR(int i,Tangent &theta){
 		Mat jrT=Jr(i,theta).t();
-		Mat mr=Mat_<S>(r(i,theta));
+		Mat mr=(Mat_<S>(1,1)<<r(i,theta));
 		return jrT*mr;
 	}
 	// Less squares error
 	inline S Els(Tangent theta){
-		Mat dImg=wrapI2(theta)-I2;
-		Mat d2Img;
-		multiply(dImg,dImg,d2Img);
-		S e=cv::sum(d2Img);
-		return e/(d2Img.rows+d2Img.cols);
+		S e=0;
+		int c=0;//number of good 2D points
+		for(unsigned int i=0;i<U.size();i++){
+			if(I2.is2DPointInImage(W[i])){
+				e+=R(i,theta);
+				c++;
+			}//else cout <<"id2DPointInImage Els"<<endl;
+		}
+		return e/c;
 	}
 	// Less squares gradient
 	inline Mat GEls(Tangent &theta){
 		Mat jels=Mat::zeros(Size(1,6),CV_64F);
-		for(unsigned int i=0;i<Q.size();i++){
-			jels+=GR(i,theta);
+		int c=0;//number of good 2D points
+		for(unsigned int i=0;i<U.size();i++){
+			if(I2.is2DPointInImage(W[i])){
+				jels+=GR(i,theta);
+				c++;
+			}//else cout <<"id2DPointInImage GEls"<<endl;
 		}
-		return jels/Q.size();
+		return jels/c;
 	}
 	inline void Hg(vector<Point3f> &Q,vector<Point3f> &P,Tangent &theta){
 		int k=6;
@@ -200,6 +248,7 @@ public:
 	    }
 	    cout <<"GN"<<i<<endl;
 	    return i==MAXI+1;*/
+		return false;
 	}
 
 	const DepthImage& getI1() const {
@@ -208,9 +257,10 @@ public:
 
 	void setI1(const DepthImage& i1) {
 		I1 = i1;
+		U=I1.getPoints2D();
+		P=I1.getPoints3D();
 	}
-
-	const DepthImage& getI2() const {
+	DepthImage& getI2(){
 		return I2;
 	}
 	const DepthImage& getI2p() const {

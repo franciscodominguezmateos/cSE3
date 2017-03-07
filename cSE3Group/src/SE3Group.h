@@ -9,7 +9,9 @@
 #ifndef SE3GROUP_H_
 #define SE3GROUP_H_
 #include <iostream>
-#include <opencv2/core.hpp>
+//#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <liegroups/se3_io.hpp>
 #include <liegroups/se3.hpp>
 
@@ -180,7 +182,7 @@ public:
 	se3Algebra<S> operator+(se3Algebra<S> a){
 		return (exp()*a.exp()).log();
 	}
-	//must realise that actually the sum is this=a+this NOT this=this+a
+	//must realize that actually the sum is this=a+this NOT this=this+a
 	void operator+=(se3Algebra<S> a){
 		SE3Group<S> seg=a.exp()*exp();
 		SE3<S> se=seg.se3;
