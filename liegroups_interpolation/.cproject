@@ -29,7 +29,7 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.643231121" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1006498331" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.2004694839" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/opt/ros/kinetic/include/opencv-3.1.0-dev"/>
+									<listOptionValue builtIn="false" value="/opt/ros/kinetic/include/opencv-3.3.1-dev"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/cOpenCV3DRigidTransformation/src}&quot;"/>
 									<listOptionValue builtIn="false" value="/home/francisco/catkin_ws/devel/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/src}&quot;"/>
@@ -49,7 +49,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.265635855" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.239689789" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.paths.1776067675" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/opt/ros/kinetic/lib"/>
+									<listOptionValue builtIn="false" value="/opt/ros/kinetic/lib/x86_64-linux-gnu"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1766560809" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="opencv_viz3"/>
