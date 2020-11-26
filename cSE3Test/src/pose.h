@@ -182,23 +182,23 @@ public:
 	}
 	inline Pose inverse()  {return Pose(R.t(),-R.t()*t);}
 	inline Pose i()        {return Pose(R.t(),-R.t()*t);}
-	inline Pose operator!(){return Pose(R.t(),-R.t()*t);}
-	inline Twist operator/(Pose q){
+	inline Pose operator-(){return Pose(R.t(),-R.t()*t);}
+	inline Twist operator-(Pose q){
 		Pose &p=*this;
 		// p=q*d right operator
-		Pose d=!q*p;
+		Pose d=-q+p;
 		Twist td=d.log();
 		return td;
 	}
-	//I am thinking abour using + for composition and * for action,...
+	// I am thinking about using + for composition and * for action,...
 	// I could use - binary operator for right difference and - unary operator for inverse
 	// then this a+-c is left difference and a-c=-c+a is right difference
-	inline Pose operator*(Twist tw){
+	inline Pose operator+(Twist tw){
 		Pose &self=*this;
-		Pose p=self*exp(tw);
+		Pose p=self+exp(tw);
 		return p;
 	}
-	inline Pose operator*(Pose p){
+	inline Pose operator+(Pose p){
 		return Pose(R*p.R,R*p.t+t);
 	}
 	inline Vec3d operator*(Vec3d p){
@@ -222,6 +222,27 @@ public:
 		return Twist(rw,rr);
 	}
 	inline Twist adjoint(Twist V){return adjoint(V.getW(),V.getV());}
+	inline Mat adjointMat(){
+		Mat adj;//=Mat::zeros(6,6,CV_64F);
+		Mat pr=hat(t)*R;
+		/*
+		Mat m00(adj,Rect(0,0,3,3));
+		Mat m10(adj,Rect(0,3,3,3));
+		Mat m11(adj,Rect(3,3,3,3));
+		for(int i=0;i<3;i++){
+			for(int j=0;i<3;i++){
+				m00.at<double>(i,j)=R .at<double>(i,j);
+				m10.at<double>(i,j)=pr.at<double>(i,j);
+				m11.at<double>(i,j)=R .at<double>(i,j);
+			}
+		}*/
+		cout <<"pr="<<pr<<endl;
+		Mat r1;
+		hconcat(R,Mat::zeros(3,3,CV_64F),adj);
+		hconcat(pr,R,r1);
+		adj.push_back(r1);
+		return adj;
+	}
 	//Jacobian of pose action at 0
 	inline Mat J0(Vec3d py){
 		Mat yx=-hat(py);
@@ -230,7 +251,21 @@ public:
 		return J;
 	}
 	//Interpolation
+	// this interpolated by right-> dm in on the right and update is r=T0*Tt
+	// With matrices: m1=m0*dm ->dp=m0.inv()*m1;
+	// With poses: p1=p0+dp  -> dp=p1-p0; //by right
+	Pose interpolate(Pose &p1,double t){
+		Pose &p0=*this;
+		Pose dp=p1-p0;
+		Twist dtw=dp.log()*t;
+		Pose pr=p0+dtw;
+		return pr;
+	}
 	//Integration
+	inline static Pose integrate(Twist tw,double t){
+		Pose pr=exp(tw*t);
+		return pr;
+	}
 };
 ostream& operator<<(ostream& os,const Pose& p){
 	os<<p.getR()<<p.getT();

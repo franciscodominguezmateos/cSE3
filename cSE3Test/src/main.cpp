@@ -16,14 +16,13 @@ public:
 		for(int i=0;i<N;i++){
 			ScrewAxis &sa=joints[i];
 			double state=states[i];
-			Joint j=Pose::exp(sa*state);
-			p=p*j;
+			p=p+sa*state;
 		}
 		return p;
 	}
 	Pose forward(vector<double> &states){
 		Pose p=forwardUpTo(joints.size(),states);
-		p=p*home;
+		p=p+home;
 		return p;
 	}
 	void buildJacobianColumns(vector<double> &states){
@@ -65,15 +64,15 @@ void example3_19(){
 			                    1,   0,   0);
 	t = (Mat_<double>(3, 1) << 30.0,-40,25.0);
 	Pose Tbc(R,t);
-	Pose Tae=Tad*Tde;
-	Pose Tac=Tad*Tdb*Tbc;
-	Pose Taci=!Tac;
-	Pose Tce=Taci*Tae;
+	Pose Tae=Tad+Tde;
+	Pose Tac=Tad+Tdb+Tbc;
+	Pose Taci=-Tac;
+	Pose Tce=Taci+Tae;
 	cout << "Tae="<< Tae << endl;
 	cout << "Tac="<< Tac<<endl;
 	cout << "Taci="<< Taci<<endl;
 	cout << "Tce="<< Tce<<endl;
-	cout << "I="<< Tac*Taci<<endl;
+	cout << "I="<< Tac+Taci<<endl;
 }
 int main()
 {
@@ -87,12 +86,13 @@ int main()
 	//Twist r=Tsb.adjoint(Vb);
 	Pose Tsb(30,1,2);
 	Pose Tsc(60,2,1);
-	Pose Ti=Tsc*!Tsb;
+	Pose Ti=Tsc+-Tsb;
 	Twist tw=Ti.log();
-	cout << "Tsb="<< Tsb<<endl;
-	cout << "Tsc="<<Tsc<<endl;
-	cout << "Tsc:"<<Ti*Tsb<<endl;
+	cout << "Tsb="<< Tsb.asMat()<<endl;
+	cout << "Tsc="<<Tsc.asMat()<<endl;
+	cout << "Tsc:"<<Ti+Tsb<<endl;
 	cout << "Ti="<<Ti<<endl;
+	cout << "Ti="<<Ti.adjointMat()<<endl;
 	cout << "tw="<<tw<<endl;
 	cout << "sa="<<tw.getScrewAxis()<<"theta="<<tw.getTheta()<<endl;
 	//example3_19();
