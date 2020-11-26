@@ -65,14 +65,23 @@ int main()
     vp1.push_back(Point3f(0.4,1,0.2));
     vp1.push_back(Point3f(1.1,-1,0));
     vp1.push_back(Point3f(-1,1,-1));
+    viz::WCloud cloud_widget_vp1(vp1, viz::Color::red());
+    cloud_widget_vp1.setRenderingProperty(viz::POINT_SIZE,8.0);
+    myWindow.showWidget("vp1", cloud_widget_vp1);
     vector<Point3f> P(vp1);
     vp2.resize(vp1.size());
     cout << "Before of transform"<<endl;
     cv::perspectiveTransform(vp1,vp2,transform.matrix);
     //solver.transformPoints(vp2,vp1,theta);
+    viz::WCloud cloud_widget_vp2(vp2, viz::Color::green());
+    cloud_widget_vp2.setRenderingProperty(viz::POINT_SIZE,8.0);
+    myWindow.showWidget("vp2", cloud_widget_vp2);
     cout << "vp2"<<vp2 <<endl;
     vp3.resize(vp1.size());
     solver.transformPoints(vp3,vp1,te);
+    //viz::WCloud cloud_widget_vp3(vp3, viz::Color::orange());
+    //cloud_widget_vp3.setRenderingProperty(viz::POINT_SIZE,40.0);
+    //myWindow.showWidget("vp3", cloud_widget_vp3);
     vector<Point3f> Q(vp3);
     cout << "vp3"<<vp3 <<endl;
     cout << "Els=" << solver.Els(vp3,vp1,se)<<endl;
@@ -91,12 +100,15 @@ int main()
     viz::WCameraPosition *wcp;
     while(sqrt(els)>0.015 && i<1000){
         solver.transformPoints(vp1,vp1,dThetaAlpha);
+        viz::WCloud *cloud_widget_vp1=new viz::WCloud(vp1, viz::Color::yellow());
+        cloud_widget_vp1->setRenderingProperty(viz::POINT_SIZE,4.0);
+        myWindow.showWidget(to_string(i), *cloud_widget_vp1);
     	els =solver.Els (vp3,vp1,dThetaAlpha);
         gels=solver.GEls(vp3,vp1,dThetaAlpha);
         dTheta=Tangent(gels);
         dThetaAlpha=dTheta*-0.1;
         theta+=dThetaAlpha;
-        if (i%50==0){
+        if (i%5==0){
         	cout << i << endl;
         	wcp=new viz::WCameraPosition();
             myWindow.showWidget(to_string(i),*wcp);

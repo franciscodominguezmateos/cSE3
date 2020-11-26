@@ -19,8 +19,11 @@ using namespace std;
 using namespace liegroups;
 using namespace cv;
 
+
 template <typename S>
 class se3Algebra;
+
+//typedef se3Algebra<double> se3;
 
 template <typename S>
 class SE3Group {
@@ -126,11 +129,25 @@ public:
 		ret.se3=dtg*a;
 		return ret;
 	}
+	se3Algebra<S> adjoint(se3Algebra<S> v){
+		S r[6];
+		adjoint_multiply(r,se3,v.t);
+		return se3Algebra<S>(r);
+	}
+	se3Algebra<S> adjointT(se3Algebra<S> v){
+		S r[6];
+		adjoint_T_multiply(r,se3,v.t);
+		return se3Algebra<S>(r);
+	}
 };
 template <typename S>
 class se3Algebra{
 	S t[6];
 public:
+	friend class SE3Group<S>;
+	se3Algebra(S s[6]){
+		for(int i;i<6;i++) t[i]=s[i];
+	}
 	se3Algebra(){
 		t[0]=t[1]=t[2]=t[3]=t[4]=t[5]=0;
 	}
@@ -196,6 +213,19 @@ public:
 		for(int i=0;i<6;i++)
 			m.at<S>(i,0)=t[i];
 		return m;
+	}
+	//Jacobian with respect to theta at 0, of application function,  returns a 3x6 matrix
+	inline Mat Jat0toP(Point3f &p){
+		se3Algebra<S> &theta=*this;
+		Point3f pt=theta*p;
+		float &x=pt.x;
+		float &y=pt.y;
+		float &z=pt.z;
+		Mat jT=Mat_<S>(3,6);
+		jT.at<S>(0,0)=  1;jT.at<S>(0,1)=  0;jT.at<S>(0,2)=  0;jT.at<S>(0,3)=  0;jT.at<S>(0,4)=  z;jT.at<S>(0,5)= -y;
+		jT.at<S>(1,0)=  0;jT.at<S>(1,1)=  1;jT.at<S>(1,2)=  0;jT.at<S>(1,3)= -z;jT.at<S>(1,4)=  0;jT.at<S>(1,5)=  x;
+		jT.at<S>(2,0)=  0;jT.at<S>(2,1)=  0;jT.at<S>(2,2)=  1;jT.at<S>(2,3)=  y;jT.at<S>(2,4)= -x;jT.at<S>(2,5)=  0;
+		return jT;
 	}
 };
 #endif /* SE3GROUP_H_ */

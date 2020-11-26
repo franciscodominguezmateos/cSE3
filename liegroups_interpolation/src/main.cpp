@@ -94,8 +94,12 @@ int main()
     vp1.push_back(Point3f(0.4,1,0.2));
     vp1.push_back(Point3f(1.1,-1,0));
     vp1.push_back(Point3f(-1,1,-1));
+    viz::WCloud cloud_widget_vp1(vp1, viz::Color::red());
+    myWindow.showWidget("vp1", cloud_widget_vp1);
     cout << "Before of transform"<<endl;
     cv::perspectiveTransform(vp1,vp2,transform.matrix);
+    viz::WCloud cloud_widget_vp2(vp2, viz::Color::blue());
+    myWindow.showWidget("vp2", cloud_widget_vp2);
     cout << "Before of reshape"<<endl;
 	Mat mp1=Mat(vp1).reshape(1);
 	Mat mp2=Mat(vp2).reshape(1);

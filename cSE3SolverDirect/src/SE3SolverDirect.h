@@ -27,7 +27,7 @@ class SE3SolverDirect {
 	DepthImage I2,I1;
 	Mat I2p;
 	vector<Point3f> P;//3Dpts in I1
-	vector<Point2f> U;//2Dpts valid pints in I1
+	vector<Point2f> U;//2Dpts valid points in I1
 	vector<Point3f> Q;//3Dpts transformed from I1
 	vector<Point2f> W;//2Dpts projected from Q
 public:
@@ -115,7 +115,7 @@ public:
 		float &x=pt.x;
 		float &y=pt.y;
 		float &z=pt.z;
-		float fx=I1.getFx();
+		float fx=I2.getFx();
 		float fy=I2.getFy();
 		Mat jp=(Mat_<S>(2,3)<< fx/z,   0,-fx*x/(z*z),
 				               0   ,fy/z,-fy*y/(z*z));
@@ -123,7 +123,8 @@ public:
 	}
 	// Jacobian of residual with respect to theta at 0
 	inline Mat Jr(int i,Tangent &theta){
-		Mat Ji=(Mat_<S>(1,2)<<I2.getGradXImg().at<float>(W[i]),I2.getGradYImg().at<float>(W[i]));
+		Mat Ji=(Mat_<S>(1,2)<<I2.getGradXImg().at<float>(W[i]),
+				              I2.getGradYImg().at<float>(W[i]));
 		return Ji*Jproj(i)*JT(i);
 	}
 	// Residual squared is the loss function for point i
@@ -135,7 +136,7 @@ public:
 		Mat rm=Mat::zeros(I2.getImg().size(),CV_32F);
 		for(int i=0;i<U.size();i++){
 			if(I2.is2DPointInImage(W[i])){
-				rm.at<float>(U[i])=R(i,theta);
+				rm.at<float>(U[i])=sqrt(R(i,theta));
 			}//else cout <<"id2DPointInImage RImg"<<endl;
 		}
 		return rm;
@@ -230,7 +231,7 @@ public:
 		Mat mTheta=Hi*g;
 		return mTheta;
 	}
-	inline bool solveGaussNewton(Tangent &theta){/*
+	inline bool solveGaussNewton(Tangent &theta){
 		vector<Point3f> vp(P);
 		S els;
 		Mat gels;
@@ -247,8 +248,8 @@ public:
 	    	els =Els (Q,vp,dThetaAlpha);
 	    }
 	    cout <<"GN"<<i<<endl;
-	    return i==MAXI+1;*/
-		return false;
+	    return i==MAXI+1;
+		//return false;
 	}
 
 	const DepthImage& getI1() const {

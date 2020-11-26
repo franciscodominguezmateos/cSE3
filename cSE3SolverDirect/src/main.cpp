@@ -52,14 +52,14 @@ int main(int argc, char** argv)
 	vdi1[2]=vdi1[1].pyrDown(0.5);
 	vdi1[3]=vdi1[2].pyrDown(0.5);
 	//di1=di1.pyrDown(0.5);
-	di1=vdi1[2];
-	DepthImage di2(basepath,1);
+	di1=vdi1[1];
+	DepthImage di2(basepath,2);
 	vdi2[0]=di2;
 	vdi2[1]=vdi2[0].pyrDown(0.5);
 	vdi2[2]=vdi2[1].pyrDown(0.5);
 	vdi2[3]=vdi2[2].pyrDown(0.5);
 	//di2=di2.pyrDown(0.5);
-	di2=vdi2[2];
+	di2=vdi2[1];
 	SE3SolverDirect<S> solver;
 	di2.computeGrad();
 	solver.setI1(di1);
@@ -70,6 +70,9 @@ int main(int argc, char** argv)
 	Mat w=solver.wrapI2(t);
 	imshow("wp",w);
 	Mat r=solver.RImg(t);
+	double min, max;
+	minMaxLoc(r, &min, &max);
+	cout << "min="<<min << ",max="<<max<<endl;
 	Mat rn;
 	normalize(r,rn, 0, 1, CV_MINMAX);
 	imshow("rn",rn);
@@ -85,7 +88,7 @@ int main(int argc, char** argv)
 	cv::waitKey(0);
 	int i=0;
 	Mat wpi1;
-	while(els>0.0001){
+	while(sqrt(els)>0.001){
 		w=solver.wrapI2(t);
 		if(i % 2==0){
 			cv::addWeighted(di1.getImg(),0.5,w,0.5,0,wpi1);
@@ -93,20 +96,22 @@ int main(int argc, char** argv)
 			r=solver.RImg(t);
 			normalize(r,rn, 0, 1, CV_MINMAX);
 			imshow("rn",rn);
-			cout << i ;
-			cout << "Els=" << els;
+			cout << "i="<<i ;
+			cout << " Els=" << sqrt(els);
 			cout << " GEls="<< gels.t()<<endl;
 			cv::waitKey(1);
 		}
 		els =solver.Els (t);
 		gels=solver.GEls(t);
 		dTheta=Tangent(gels);
-		dThetaAlpha=dTheta*-0.00001;
+		dThetaAlpha=dTheta*-0.0002;
 		t+=dThetaAlpha;
 		//cout << "dThetaAlpha=" << dThetaAlpha.exp().asMat() <<endl;
 		//cout << "t=" << t.exp().asMat() <<endl;
 		i++;
 	}
+	cout << "dThetaAlpha=" << dThetaAlpha.exp().asMat() <<endl;
+	cout << "t=" << t.exp().asMat() <<endl;
 	cout << i << endl;
 	waitKey(0);
     /*
