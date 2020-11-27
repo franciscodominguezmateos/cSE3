@@ -30,6 +30,7 @@ public:
 		mw.push_back(mv);
 		return mw;
 	}
+	inline Twist operator+(Twist  tw){return Twist(w+tw.w,v+tw.v);}
 	inline Twist operator*(double dt){return Twist(w*dt,v*dt);}
 	//inline Pose operator*(Pose p){
 	//	return Pose::exp(*this)*p;
@@ -59,5 +60,5 @@ ostream& operator<<(ostream& os,const Twist& tw){
 	return os;
 }
 typedef Twist ScrewAxis;
-typedef Twist Wrenche;
+typedef Twist Wrench;
 #endif /* SRC_TWIST_H_ */

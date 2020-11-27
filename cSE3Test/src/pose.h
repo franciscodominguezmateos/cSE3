@@ -64,7 +64,6 @@ inline Vec3d log(Mat R){
 	Vec3d w=vee(mw);
 	return w;
 }
-
 class Pose{
 	Mat R;// (3x3)
 	Mat t;// (3x1)
@@ -81,33 +80,8 @@ public:
 		t=(Mat_<double>(3,1)<<x,y,0);
 	}
 	Pose(Mat R,Mat t):R(R),t(t){}
-	Pose(Vec3d w,Vec3d v)/*:Pose(Twist(w,v).exp())*/{
-		// w=u*theta;
-		double theta=norm(w);
-		//Vec3d u=w/theta;
-		//Mat U=hat(u);
-		//Mat U2=U*U;
-		Mat W=hat(w);
-		Mat W2=W*W;
-		double theta2=theta*theta;
-		double CA,CB,CC;
-		if(theta<0.001){
-			CA=1-theta2/6*(1-theta2/20*(1-theta2/42));
-			CB=1/2*(1-theta2/12*(1-theta2/30*(1-theta2/56)));
-			CC=1/6*(1-theta2/20*(1-theta2/42*(1-theta2/72)));
-		}
-		else{
-			double theta3=theta2*theta;
-			double sw=sin(theta);
-			double cw=cos(theta);
-			CA=sw/theta;
-			CB=(1-cw)/theta2;
-			CC=(theta-sw)/theta3;
-		}
-		R=I+W*CA+W2*CB;
-		Mat V=I+W*CB+W2*CC;
-		t=V*Mat(v);
-	}
+	Pose(Vec3d w,Vec3d v):Pose(Twist(w,v)){}
+	Pose(Twist tw):Pose(exp(tw)){}
 	static Pose exp(Twist tw){
 		Vec3d w=tw.getW();
 		Vec3d v=tw.getV();
@@ -138,18 +112,21 @@ public:
 		Mat t=V*Mat(v);
 		return Pose(R,t);
 	}
-	Pose(Twist V):Pose(V.getW(),V.getV()){}
-	inline Mat getR()const{return R;}
-	inline Mat getT()const{return t;}
-	inline Mat asMat(){
+	//Rotation
+	inline Mat  getR() const{return R;}
+	inline void setR(Mat R){this->R=R;}
+	//Translation
+	inline Mat  getT() const{return t;}
+	inline void setT(Mat T){t=T;}
+	inline Mat asMat()const{
 		Mat T;
 		hconcat(R,t,T);
 		Mat m=(Mat_<double>(1,4)<<0,0,0,1);
 		T.push_back(m);
 		return T;
 	}
-	inline void setR(Mat R){this->R=R;}
-	inline void setT(Mat T){t=T;}
+	// Return transformation
+	inline Mat T(){return asMat();}
 	inline Twist log(){
 		double tr=trace(R);
 		if(tr<0.001){
@@ -180,6 +157,9 @@ public:
 			return Twist(w,v);
 		}
 	}
+	// I am using + for composition and * for action.
+	// Use - binary operator for right difference and - unary operator for inverse
+	// then this a+-c is left difference and a-c=-c+a is right difference
 	inline Pose inverse()  {return Pose(R.t(),-R.t()*t);}
 	inline Pose i()        {return Pose(R.t(),-R.t()*t);}
 	inline Pose operator-(){return Pose(R.t(),-R.t()*t);}
@@ -190,9 +170,6 @@ public:
 		Twist td=d.log();
 		return td;
 	}
-	// I am thinking about using + for composition and * for action,...
-	// I could use - binary operator for right difference and - unary operator for inverse
-	// then this a+-c is left difference and a-c=-c+a is right difference
 	inline Pose operator+(Twist tw){
 		Pose &self=*this;
 		Pose p=self+exp(tw);
@@ -214,35 +191,35 @@ public:
 		}
 		return r;
 	}
-	inline Twist adjoint(Vec3d w,Vec3d v){
+	//Adjoint function Pose.Ad(Twist)
+	inline Twist Ad(Vec3d w,Vec3d v){
 		Mat mw(w);
 		Mat mv(v);
 		Mat rw=R*mw;
 		Mat rr=hat(t)*rw+R*mv;
 		return Twist(rw,rr);
 	}
-	inline Twist adjoint(Twist V){return adjoint(V.getW(),V.getV());}
-	inline Mat adjointMat(){
+	inline Twist Ad(Twist V){return Ad(V.getW(),V.getV());}
+	inline Twist AdT(Vec3d w,Vec3d v){
+		Mat mw(w);
+		Mat mv(v);
+		Mat rr=hat(t)*R;
+		Mat rw=R.t()*mw+rr.t()*mv;
+		Mat rv=R.t()*mv;
+		return Twist(rw,rv);
+	}
+	inline Twist AdT(Twist V){return AdT(V.getW(),V.getV());}
+	//Adjoint matrix
+	inline Mat AdMat(){
 		Mat adj;//=Mat::zeros(6,6,CV_64F);
 		Mat pr=hat(t)*R;
-		/*
-		Mat m00(adj,Rect(0,0,3,3));
-		Mat m10(adj,Rect(0,3,3,3));
-		Mat m11(adj,Rect(3,3,3,3));
-		for(int i=0;i<3;i++){
-			for(int j=0;i<3;i++){
-				m00.at<double>(i,j)=R .at<double>(i,j);
-				m10.at<double>(i,j)=pr.at<double>(i,j);
-				m11.at<double>(i,j)=R .at<double>(i,j);
-			}
-		}*/
-		cout <<"pr="<<pr<<endl;
 		Mat r1;
 		hconcat(R,Mat::zeros(3,3,CV_64F),adj);
 		hconcat(pr,R,r1);
 		adj.push_back(r1);
 		return adj;
 	}
+	inline Mat AdTMat(){return AdMat().t();}
 	//Jacobian of pose action at 0
 	inline Mat J0(Vec3d py){
 		Mat yx=-hat(py);
@@ -268,7 +245,7 @@ public:
 	}
 };
 ostream& operator<<(ostream& os,const Pose& p){
-	os<<p.getR()<<p.getT();
+	os<<p.asMat();
 	return os;
 }
 inline Pose exp(Twist tw){return Pose::exp(tw);}

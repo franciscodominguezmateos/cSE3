@@ -28,7 +28,7 @@ public:
 	void buildJacobianColumns(vector<double> &states){
 		for(unsigned int i=0;i<states.size();i++){
 			Pose p=forwardUpTo(i,states);
-			J[i]=p.adjoint(joints[i]);
+			J[i]=p.Ad(joints[i]);
 		}
 	}
 	Mat jacobian(vector<double> &states){
@@ -41,7 +41,7 @@ public:
 		return m;
 	}
 };
-void example3_19(){
+void example_3_19(){
 	Mat R,t;
 	R = (Mat_<double>(3, 3) <<  0, 0,-1,
 			                    0,-1, 0,
@@ -74,27 +74,66 @@ void example3_19(){
 	cout << "Tce="<< Tce<<endl;
 	cout << "I="<< Tac+Taci<<endl;
 }
-int main()
-{
+void example_3_23(){
 	Twist Vs(0,0,2,-2,-4,0);
 	Twist Vb(0,0,-2,2.8,4,0);
 	Mat R = (Mat_<double>(3, 3) << -1, 0, 0,
 			                        0, 1, 0,
 			                        0, 0,-1);
 	Mat t = (Mat_<double>(3, 1) << 4.0,0.4,0.0);
-	//Pose Tsb(R,t);
-	//Twist r=Tsb.adjoint(Vb);
-	Pose Tsb(30,1,2);
+	Pose Tsb(R,t);
+	Twist r=Tsb.Ad(Vb);
+	cout << "r="<<r<<endl;
+}
+void example_3_26(){
+	Pose Tsb=Pose(30,1,2);
 	Pose Tsc(60,2,1);
-	Pose Ti=Tsc+-Tsb;
+	Pose Ti=Tsc+-Tsb;//Tsc=Ti+Tsb
 	Twist tw=Ti.log();
-	cout << "Tsb="<< Tsb.asMat()<<endl;
-	cout << "Tsc="<<Tsc.asMat()<<endl;
+	cout << "Tsb="<< Tsb<<endl;
+	cout << "Tsc="<<Tsc<<endl;
 	cout << "Tsc:"<<Ti+Tsb<<endl;
 	cout << "Ti="<<Ti<<endl;
-	cout << "Ti="<<Ti.adjointMat()<<endl;
+	cout << "Ti="<<Ti.AdMat()<<endl;
 	cout << "tw="<<tw<<endl;
 	cout << "sa="<<tw.getScrewAxis()<<"theta="<<tw.getTheta()<<endl;
-	//example3_19();
+}
+void example_3_28(){
+	double L1=0.1 ;//10cm
+	double L2=0.15;//15cm
+	Wrench Fh={0,0,0,0,-5,0};
+	Wrench Fa={0,0,0,0, 0,1};
+	Mat thf = (Mat_<double>(3, 1) << -L1,0.0,0.0);
+	Pose Thf(I,thf);
+	Mat Raf = (Mat_<double>(3, 3) <<1, 0, 0,
+			                        0, 0, 1,
+			                        0,-1, 0);
+	Mat taf = (Mat_<double>(3, 1) << -(L1+L2),0.0,0.0);
+	Pose Taf(Raf,taf);
+	Wrench wFfh=Thf.AdT(Fh);
+	Wrench wFfa=Taf.AdT(Fa);
+	Wrench wFf=wFfh+wFfa;//Ko¿?
+	Mat mFfh=Thf.AdMat().t()*Fh.asMat();
+	Mat mFfa=Taf.AdMat().t()*Fa.asMat();
+	Mat mFf=mFfh+mFfa;//Ok
+	cout << "Thf.AdTMat="<<Thf.AdMat().t() <<endl;
+	cout << "Taf.AdTMat="<<Taf.AdMat().t() <<endl;
+	cout << "Fh="<<Fh<<endl;
+	cout << "Fa="<<Fa<<endl;
+	cout << "Thf="<<Thf<<endl;
+	cout << "Taf="<<Taf<<endl;
+	cout << "mFfh="<<mFfh<<endl;
+	cout << "mFfa="<<mFfa<<endl;
+	cout << "mFf="<<mFf<<endl;
+	cout << "wFfh="<<wFfh<<endl;
+	cout << "wFfa="<<wFfa<<endl;
+	cout << "wFf="<<wFf<<endl;
+
+}
+int main()
+{   //example_3_19();
+	//example_3_23();
+	//example_3_26();
+	example_3_28();
 	return 0;
 }
