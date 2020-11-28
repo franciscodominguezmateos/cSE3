@@ -8,6 +8,9 @@
 #include <vector>
 #include "pose.h"
 
+class GeneralizedCoord : public Mat{
+
+};
 class OpenChainBody{
 	vector<ScrewAxis> joints;
 	//jacobian columns
@@ -50,5 +53,18 @@ public:
 			hconcat(m,mj,m);
 		}
 		return m;
+	}
+	vector<double> ikStep(vector<double> &states,Twist goal){
+		Mat j=jacobian(states);
+		Mat Jpinv;
+		invert(j, Jpinv, DECOMP_SVD);
+		Mat dState=Jpinv*goal.asMat();
+		printMat(j);
+		vector<double> r=states;
+		for(unsigned int i=0;i<r.size();i++){
+			r[i]+=dState.at<double>(i,1);
+		}
+		cout << dState<<endl;
+		return r;
 	}
 };
