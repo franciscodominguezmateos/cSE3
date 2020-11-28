@@ -31,6 +31,11 @@ public:
 		p=p+home;
 		return p;
 	}
+	Pose forwardBody(vector<double> &states){
+		Pose p=forwardUpTo(joints.size(),states);
+		p=home+p;
+		return p;
+	}
 	void buildJacobianColumns(vector<double> &states){
 		for(unsigned int i=0;i<states.size();i++){
 			Pose p=forwardUpTo(i,states);

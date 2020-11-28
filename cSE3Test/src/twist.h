@@ -2,16 +2,10 @@
  * twist.h
  *
  *  Created on: 23 Nov 2020
- *      Author: francisco
+ *      Author: francisco Dominguez
  */
-
-#ifndef SRC_TWIST_H_
-#define SRC_TWIST_H_
-#include <opencv2/viz.hpp>
-//#include "pose.h"
-
-using namespace std;
-using namespace cv;
+#pragma once
+#include "poe_util.h"
 
 class Twist{
 	Vec3d w,v;
@@ -53,6 +47,43 @@ public:
 		}
 		return n;
 	}
+	//Adjoint function Pose.Ad(Twist)
+	inline Twist ad(Vec3d w,Vec3d v){
+		Mat mw(w);
+		Mat mv(v);
+		Mat W=hat(w);
+		Mat V=hat(v);
+		Mat rw=W*mw;
+		Mat rv=V*mw+W*mv;
+		return Twist(rw,rv);
+	}
+	inline Twist ad(Twist V){return ad(V.getW(),V.getV());}
+	inline Twist adT(Vec3d w,Vec3d v){
+		Mat mw(w);
+		Mat mv(v);
+		Mat W=hat(w);
+		Mat V=hat(v);
+		Mat rw=W.t()*mw+V.t()*mv;
+		Mat rv=W.t()*mv;
+		return Twist(rw,rv);
+	}
+	inline Twist adT(Twist V){return adT(V.getW(),V.getV());}
+	//Adjoint matrix
+	inline Mat adMat(){
+		Mat W=hat(w);
+		Mat V=hat(v);
+		Mat ad=stack4x4(W,Z,V,W);
+		return ad;
+	}
+	inline Mat adTMat(){return adMat().t();}
+	//Jacobian of pose action at 0
+	inline Mat J0(Vec3d py){
+		Mat yx=-hat(py);
+		Mat J;
+		hconcat(yx,I,J);
+		return J;
+	}
+
 	friend ostream& operator<<(ostream& os,const Twist& tw);
 };
 ostream& operator<<(ostream& os,const Twist& tw){
@@ -61,4 +92,4 @@ ostream& operator<<(ostream& os,const Twist& tw){
 }
 typedef Twist ScrewAxis;
 typedef Twist Wrench;
-#endif /* SRC_TWIST_H_ */
+

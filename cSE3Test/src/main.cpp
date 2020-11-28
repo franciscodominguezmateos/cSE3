@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "open_chain_body.h"
 using namespace std;
 
@@ -51,11 +52,12 @@ void example_3_26(){
 	Pose Tsc(60,2,1);
 	Pose Ti=Tsc+-Tsb;//Tsc=Ti+Tsb
 	Twist tw=Ti.log();
-	cout << "Tsb="<< Tsb<<endl;
-	cout << "Tsc="<<Tsc<<endl;
-	cout << "Tsc:"<<Ti+Tsb<<endl;
-	cout << "Ti="<<Ti<<endl;
-	cout << "Ti="<<Ti.AdMat()<<endl;
+	cout << "Tsb="<<endl<< Tsb<<endl;
+	cout << "Tsc="<<endl<<Tsc<<endl;
+	cout << "Tsc:"<<endl<<Ti+Tsb<<endl;
+	cout << "Ti="<<endl<<Ti<<endl;
+	cout << "Ti="<<endl;
+	printMat(Ti.AdMat());
 	cout << "tw="<<tw<<endl;
 	cout << "sa="<<tw.getScrewAxis()<<"theta="<<tw.getTheta()<<endl;
 }
@@ -81,8 +83,8 @@ void example_3_28(){
 	cout << "Taf.AdTMat="<<Taf.AdMat().t() <<endl;
 	cout << "Fh="<<Fh<<endl;
 	cout << "Fa="<<Fa<<endl;
-	cout << "Thf="<<Thf<<endl;
-	cout << "Taf="<<Taf<<endl;
+	cout << "Thf="<<endl<<Thf<<endl;
+	cout << "Taf="<<endl<<Taf<<endl;
 	cout << "mFfh="<<mFfh<<endl;
 	cout << "mFfa="<<mFfa<<endl;
 	cout << "mFf="<<mFf<<endl;
@@ -91,10 +93,85 @@ void example_3_28(){
 	cout << "wFf="<<wFf<<endl;
 
 }
-int main()
-{   //example_3_19();
+void example_4_6(){
+	double L1=0.425;
+	double L2=0.392;
+	double W1=0.109;
+	double W2=0.082;
+	double H1=0.089;
+	double H2=0.095;
+	Mat RM = (Mat_<double>(3, 3) <<-1, 0, 0,
+			                        0, 0, 1,
+			                        0, 1, 0);
+	Mat tM = (Mat_<double>(3, 1) << L1+L2,W1+W2,H1-H2);
+	Pose M(RM,tM);
+	vector<ScrewAxis> axis={
+			{0,0, 1,        0,    0,0    },
+			{0,1, 0,      -H1,    0,0    },
+			{0,1, 0,      -H1,    0,L1   },
+			{0,1, 0,      -H1,    0,L1+L2},
+			{0,0,-1,      -W1,L1+L2,0    },
+			{0,1, 0,    H2-H1,    0,L1+L2}
+	};
+	OpenChainBody USR6R(axis,M);
+	vector<double> state(axis.size());
+	state[1]=-PI/2.0;
+	state[4]= PI/2.0;
+	cout << "T="<<endl<< USR6R.forward(state)<<endl;
+	Pose eS2=Pose::exp(axis[1]*state[1]);
+	cout << "eS2="<<endl<<eS2<<endl;
+}
+void example_4_7(){
+	//It is end-effector frame
+	double L1=0.550;
+	double L2=0.300;
+	double L3=0.060;
+	double W1=0.045;
+	Mat tM = (Mat_<double>(3, 1) << 0.0,0.0,L1+L2+L3);
+	Pose M(I,tM);
+	vector<ScrewAxis> axis={
+			{0,0,1,        0,0,0},
+			{0,1,0, L1+L2+L3,0,0},
+			{0,0,1,        0,0,0},
+			{0,1,0,    L2+L3,0,W1},
+			{0,0,1,        0,0,0},
+			{0,1,0,       L3,0,0},
+			{0,0,1,        0,0,0}
+	};
+	OpenChainBody Wam7R(axis,M);
+	vector<double> state(7);
+	state[1]= PI/4.0;
+	state[3]=-PI/4.0;
+	state[5]=-PI/2.0;
+	cout << "T="<<endl<< Wam7R.forwardBody(state)<<endl;
+}
+void example_6_1(){
+	//It is end-effector frame
+	double L1=1;
+	double L2=1;
+	Mat tM = (Mat_<double>(3, 1) << L1+L2,0.0,0.0);
+	Pose M(I,tM);
+	vector<ScrewAxis> axis={
+			{0,0,1, 0,L1+L2,0},
+			{0,0,1, 0,L1   ,0}
+	};
+	OpenChainBody RR(axis,M);
+	vector<double> state(axis.size());
+	state[0]= 0.0;
+	state[1]= 30.0/180.0*PI;
+	cout << "T="<<endl<< RR.forwardBody(state)<<endl;
+
+}
+int main(){
+	cout.setf(ios::fixed);
+	cout.setf(ios::showpoint);
+	cout.precision(3);
+   //example_3_19();
 	//example_3_23();
 	//example_3_26();
-	example_3_28();
+	//example_3_28();
+	//example_4_6();
+	//example_4_7();
+	example_6_1();
 	return 0;
 }

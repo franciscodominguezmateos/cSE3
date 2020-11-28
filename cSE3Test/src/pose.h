@@ -7,63 +7,9 @@
 
 #ifndef POSE_H_
 #define POSE_H_
-#include <opencv2/viz.hpp>
+#include "poe_util.h"
 #include "twist.h"
 
-using namespace std;
-using namespace cv;
-
-const static Mat I=Mat::eye(3,3,CV_64F);
-inline Mat hat(Vec3d w){
-	double &wx=w[0];double &wy=w[1];double &wz=w[2];
-	Mat W=(Mat_<double>(3,3)<<
-			  0,-wz, wy,
-			 wz,  0,-wx,
-			-wy, wx,  0);
-	return W;
-}
-inline Vec3d vee(Mat W){
-	return Vec3d(W.at<double>(2,1),W.at<double>(0,2),W.at<double>(1,0));
-}
-inline double trace(Mat R){
-	return R.at<double>(0,0)+R.at<double>(1,1)+R.at<double>(2,2);
-}
-inline Mat exp(Vec3d w){
-	Mat W=hat(w);
-	Mat W2=W*W;
-	double theta=norm(w);
-	double theta2=theta*theta;
-	double CA,CB;
-	if(theta<0.001){
-		CA=1-theta2/6*(1-theta2/20*(1-theta2/42));
-		CB=1/2*(1-theta2/12*(1-theta2/30*(1-theta2/56)));
-	}
-	else{
-		double sw=sin(theta);
-		double cw=cos(theta);
-		CA=sw/theta;
-		CB=(1-cw)/theta2;
-	}
-	return I+W*CA+W2*CB;
-}
-inline Vec3d log(Mat R){
-	double tr=trace(R);
-	if(tr>=2.999){//R==I
-		return Vec3d(0,0,0);
-	}
-	double theta;
-	//TODO
-	if(tr<1+0.001 && tr>1-0.001){
-		theta=3.14159265358979;
-	}
-	double cw=(tr-1)/2;
-	theta=acos(cw);
-	double sw=sin(theta);
-	Mat W=(R-R.t())/(2*sw);
-	Mat mw=W*theta;
-	Vec3d w=vee(mw);
-	return w;
-}
 class Pose{
 	Mat R;// (3x3)
 	Mat t;// (3x1)
@@ -211,12 +157,8 @@ public:
 	inline Twist AdT(Twist V){return AdT(V.getW(),V.getV());}
 	//Adjoint matrix
 	inline Mat AdMat(){
-		Mat adj;//=Mat::zeros(6,6,CV_64F);
 		Mat pr=hat(t)*R;
-		Mat r1;
-		hconcat(R,Mat::zeros(3,3,CV_64F),adj);
-		hconcat(pr,R,r1);
-		adj.push_back(r1);
+		Mat adj=stack4x4(R,Z,pr,R);
 		return adj;
 	}
 	inline Mat AdTMat(){return AdMat().t();}
@@ -245,7 +187,8 @@ public:
 	}
 };
 ostream& operator<<(ostream& os,const Pose& p){
-	os<<p.asMat();
+	Mat m(p.asMat());
+	printMat(m);
 	return os;
 }
 inline Pose exp(Twist tw){return Pose::exp(tw);}
