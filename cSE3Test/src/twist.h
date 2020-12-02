@@ -6,7 +6,9 @@
  */
 #pragma once
 #include "poe_util.h"
+//#include "pose.h"
 
+class Pose;
 class Twist{
 	Vec3d w,v;
 public:
@@ -26,10 +28,8 @@ public:
 	}
 	inline Twist operator+(Twist  tw){return Twist(w+tw.w,v+tw.v);}
 	inline Twist operator*(double dt){return Twist(w*dt,v*dt);}
-	//inline Pose operator*(Pose p){
-	//	return Pose::exp(*this)*p;
-	//}
-	//Pose exp(){/*return Pose::exp(*this);*/}
+	Pose  operator*(Pose p);
+	Pose exp();
 	Twist getScrewAxis(){
 		double n=norm(w);
 		if(n>0.0001){

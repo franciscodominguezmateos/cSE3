@@ -5,6 +5,7 @@
  *      Author: Francisco Dominguez
  */
 #pragma once
+#include <iostream>
 #include <cmath>
 #include <opencv2/viz.hpp>
 
