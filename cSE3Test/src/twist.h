@@ -28,7 +28,8 @@ public:
 	}
 	inline Twist operator+(Twist  tw){return Twist(w+tw.w,v+tw.v);}
 	inline Twist operator*(double dt){return Twist(w*dt,v*dt);}
-	Pose  operator*(Pose p);
+	//Left composition
+	Pose  operator+(Pose p);
 	Pose exp();
 	Twist getScrewAxis(){
 		double n=norm(w);
@@ -86,7 +87,7 @@ public:
 
 	friend ostream& operator<<(ostream& os,const Twist& tw);
 };
-ostream& operator<<(ostream& os,const Twist& tw){
+inline ostream& operator<<(ostream& os,const Twist& tw){
 	os << "w="<<tw.w<<"v="<<tw.v;
 	return os;
 }

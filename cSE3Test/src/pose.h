@@ -16,7 +16,7 @@ class Pose{
 public:
 	Pose():R(I),t(Mat::zeros(3,1,CV_64F)){}
 	Pose(double theta_deg,double x,double y){
-		const double DEG_TO_RAD=3.14159265/180;
+		const double DEG_TO_RAD=3.14159265358979/180;
 		double theta=theta_deg*DEG_TO_RAD;
 		double sw=sin(theta);
 		double cw=cos(theta);
@@ -109,13 +109,21 @@ public:
 	inline Pose inverse()  {return Pose(R.t(),-R.t()*t);}
 	inline Pose i()        {return Pose(R.t(),-R.t()*t);}
 	inline Pose operator-(){return Pose(R.t(),-R.t()*t);}
+	//Left difference is is a+-c
+	//Right difference same as -c+a
 	inline Twist operator-(Pose q){
 		Pose &p=*this;
-		// p=q*d right operator
+		// p=q*d right composition
 		Pose d=-q+p;
 		Twist td=d.log();
 		return td;
 	}
+	//Left composition
+	friend Pose operator+(Twist tw,Pose p){
+		Pose r=Pose::exp(tw)+p;
+		return r;
+	}
+	//Right composition
 	inline Pose operator+(Twist tw){
 		Pose &self=*this;
 		Pose p=self+exp(tw);
@@ -131,10 +139,10 @@ public:
 	//apply Pose action in all columns of m
 	inline Mat operator*(Mat m){
 		Mat r=R*m;
-		//r=r+t;
-		for(int j=0;j<r.cols;j++){
-			r.col(j)+=t;
-		}
+		r=r+t;
+		//for(int j=0;j<r.cols;j++){
+		//	r.col(j)+=t;
+		//}
 		return r;
 	}
 	//Adjoint function Pose.Ad(Twist)
@@ -163,10 +171,17 @@ public:
 	}
 	inline Mat AdTMat(){return AdMat().t();}
 	//Jacobian of pose action at 0
-	inline Mat J0(Vec3d py){
+	inline Mat Jaction0(Vec3d py){
 		Mat yx=-hat(py);
 		Mat J;
 		hconcat(yx,I,J);
+		return J;
+	}
+	//Jacobian of pose action
+	inline Mat Jaction(Vec3d py){
+		Mat yx=-hat(py);
+		Mat J;
+		hconcat(R*yx,R,J);
 		return J;
 	}
 	//Interpolation
@@ -186,7 +201,7 @@ public:
 		return pr;
 	}
 };
-ostream& operator<<(ostream& os,const Pose& p){
+inline ostream& operator<<(ostream& os,const Pose& p){
 	Mat m(p.asMat());
 	printMat(m);
 	return os;

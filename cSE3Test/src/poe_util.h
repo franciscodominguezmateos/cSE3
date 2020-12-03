@@ -16,7 +16,7 @@ const static double PI=3.14159265358979;
 const static Mat I=Mat::eye(3,3,CV_64F);
 const static Mat Z=Mat::zeros(3,3,CV_64F);
 
-void printMat(Mat m){
+inline void printMat(Mat m){
 	int i,j;
 	for(i=0;i<m.rows;i++){
 		for(j=0;j<m.cols;j++){
@@ -28,15 +28,14 @@ void printMat(Mat m){
 		cout<<endl;
 	}
 }
-
-Mat stack4x4(Mat m00,Mat m01,Mat m10, Mat m11){
+inline Mat stack4x4(Mat m00,Mat m01,Mat m10, Mat m11){
 	Mat r0,r1;
 	hconcat(m00,m01,r0);
 	hconcat(m10,m11,r1);
 	r0.push_back(r1);
 	return r0;
 }
-Mat diag4x4(Mat m00, Mat m11){
+inline Mat diag4x4(Mat m00, Mat m11){
 	Mat Z=Mat::zeros(Size(m00.rows,m00.cols),CV_64F);
 	return stack4x4(m00,Z,Z,m11);
 }

@@ -5,13 +5,15 @@
  *      Author: Francisco Dominguez
  */
 #include "pose.h"
-Pose Twist::operator*(Pose p){
-	return this->exp()*p;
+//Left composition
+Pose Twist::operator+(Pose p){
+	Pose pSelf=this->exp();
+	return pSelf+p;
 }
 Pose Twist::exp(){
-	return Pose::exp(*this);
+	Twist &self=*this;
+	return Pose::exp(self);
 }
-
 
 
 
