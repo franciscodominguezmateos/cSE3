@@ -29,7 +29,7 @@ public:
 	inline Twist operator+(Twist  tw){return Twist(w+tw.w,v+tw.v);}
 	inline Twist operator*(double dt){return Twist(w*dt,v*dt);}
 	//Left composition
-	Pose  operator+(Pose p);
+	//Pose  operator+(Pose p);
 	Pose exp();
 	Twist getScrewAxis(){
 		double n=norm(w);
