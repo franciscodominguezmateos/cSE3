@@ -2,7 +2,7 @@
  * twist.h
  *
  *  Created on: 23 Nov 2020
- *      Author: francisco Dominguez
+ *      Author: Francisco Dominguez
  */
 #pragma once
 #include "poe_util.h"
@@ -15,6 +15,13 @@ public:
 	Twist():Twist(0,0,0,0,0,0){}
 	Twist(double wx,double wy,double wz,
 		  double vx,double vy,double vz):w(wx,wy,wz),v(vx,vy,vz){}
+	Twist(const Mat &m):Twist(
+			m.at<double>(0,0),
+			m.at<double>(1,0),
+			m.at<double>(2,0),
+			m.at<double>(3,0),
+			m.at<double>(4,0),
+			m.at<double>(5,0)){}
 	Twist(Vec3d w,Vec3d v):w(w),v(v){}
 	inline Vec3d getW(){return w;}
 	inline Vec3d getV(){return v;}
@@ -28,7 +35,7 @@ public:
 	}
 	inline Twist operator+(Twist  tw){return Twist(w+tw.w,v+tw.v);}
 	inline Twist operator*(double dt){return Twist(w*dt,v*dt);}
-	//Left composition
+	//Left composition, is in pose.h as friend operator+(Twist,Pose)
 	//Pose  operator+(Pose p);
 	Pose exp();
 	Twist getScrewAxis(){
@@ -84,7 +91,6 @@ public:
 		hconcat(yx,I,J);
 		return J;
 	}
-
 	friend ostream& operator<<(ostream& os,const Twist& tw);
 };
 inline ostream& operator<<(ostream& os,const Twist& tw){

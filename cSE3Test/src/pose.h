@@ -138,11 +138,17 @@ public:
 	}
 	//apply Pose action in all columns of m
 	inline Mat operator*(Mat m){
-		Mat r=R*m;
-		r=r+t;
-		//for(int j=0;j<r.cols;j++){
-		//	r.col(j)+=t;
-		//}
+		Mat r;
+		if(m.rows==3){
+			r=R*m;
+			for(int j=0;j<r.cols;j++){
+				r.col(j)+=t;
+			}
+		}else{
+			//Homogeneous coordinates
+			Mat T=asMat();
+			r=T*m;
+		}
 		return r;
 	}
 	//Adjoint function Pose.Ad(Twist)

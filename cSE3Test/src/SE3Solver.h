@@ -2,11 +2,9 @@
  * SE3Solver.h
  *
  *  Created on: Oct 14, 2016
- *      Author: francisco
+ *      Author: Francisco Dominguez
  */
-
-#ifndef SE3SOLVER_H_
-#define SE3SOLVER_H_
+#pragma once
 #include <iostream>
 #include <vector>
 #include <opencv2/core.hpp>
@@ -20,8 +18,22 @@ class SE3Problem{
 	virtual Mat g()=0;
 };
 class SE3ICP:SE3Problem{
-	vector<Point3f> Q;
-	vector<Point3f> P;
+	//Target values
+	Mat t;
+	//Original values
+	Mat p;
+	//Transformed values
+	Mat q;
+	//Transformation that make t=T*p or t-T*p=0
+	Pose T;
+	// Residual or r=t-T*p
+	Mat r;
+	// Error r2=r.mul(r) function to minimize
+	Mat r2;
+	//Error less square Els=sum(r2).val(0)
+	inline double Els(){return sum(r2).val(0)/double(r2.cols);}
+	//Gradient of error with respecto to parameter of T
+	inline Mat GEls(){
 	SE3ICP(vector<Point3f> Q,vector<Point3f> P/*,initial guess*/):Q(Q),P(P){}
 	Mat H(){}
 	Mat g(){}
@@ -96,6 +108,14 @@ public:
 		}
 		return e/Q.size();
 	}
+	// Less square error in Matrix form
+	inline S Els(Mat t,Mat p,Mat T){
+		Mat q=T*p;
+		Mat r=t-q;
+		Mat r2=r.mul(r);
+		S s=sum(r2).val(0);
+		return s/(S)p.cols;
+	}
 	// Less squares gradient
 	inline Mat GEls(vector<Point3f> Q,vector<Point3f> P,Tangent theta){
 		Mat jels=Mat::zeros(Size(1,6),CV_64F);
@@ -159,6 +179,13 @@ public:
 	    cout <<"GD"<<i<<endl;
 	    return i==MAXI+1;
 	}
+	inline double stepTradientDescent(Mat t,Mat p,Pose &T){
+		Mat gradientEls=GEls(t,p,T);
+		Twist deltaT=gradientEls*alpha;
+		T=T+deltaT;
+		double els=Els(t,p,T);
+		return els;
+	}
 	inline Mat stepGaussNewton(vector<Point3f> &Q,vector<Point3f> &P,Tangent &dThetaAlpha){
 		Hg(Q,P,dThetaAlpha);
 		Mat Hi=H.inv();
@@ -185,5 +212,3 @@ public:
 	    return i==MAXI+1;
 	}
 };
-
-#endif /* SE3SOLVER_H_ */
