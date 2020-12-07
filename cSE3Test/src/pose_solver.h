@@ -3,6 +3,7 @@
  *
  *  Created on: 4 Dec 2020
  *      Author: Francisco Dominguez
+ *  TODO: with Jacobian at 0 that means alwais the same jacobian but change origin points
  */
 #pragma once
 #include "pose_problem.h"
@@ -18,8 +19,10 @@ class PoseSolver{
 	bool gaussNewton;
 public:
 	PoseSolver():alpha(0.01),minE(0.1),MAXI(1000),gaussNewton(false){}
-	void setMethodGaussNewton()    {gaussNewton=true;alpha=0.1;}
-	void setMethodGradientDescent(){gaussNewton=false;alpha=0.1;}
+	double getEls(){return els;}
+	void setHalfLearningRate(){alpha/=2.0;}
+	void setMethodGaussNewton()    {gaussNewton=true ;alpha=0.99;}
+	void setMethodGradientDescent(){gaussNewton=false;alpha=0.001;}
 	//              G A U S S - N E W T O N
 	inline void Hg(PoseProblem* p){
 		int k=6;
