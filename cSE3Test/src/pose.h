@@ -7,7 +7,7 @@
 
 #ifndef POSE_H_
 #define POSE_H_
-#include "poe_util.h"
+#include "pose_util.h"
 #include "twist.h"
 
 class Pose{
