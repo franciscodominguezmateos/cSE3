@@ -158,16 +158,17 @@ void example_6_1(){
 	OpenChainBody RR(axis,M);
 	vector<double> state(axis.size());
 	state[0]= 0.0;
-	state[1]= 30.0/180.0*PI;
+	state[1]= deg2rad(30);
 	Pose Tsb0=RR.forwardBody(state);
 	cout << "Tsb0="<<endl<< Tsb0 <<endl;
+	cout << "Vb="<< Tsb0.log()<<endl;
 	Mat Rsd = (Mat_<double>(3, 3) <<-0.5  , -0.866, 0,
 			                         0.866, -0.5  , 1,
 			                         0    ,  1    , 0);
 	Mat tsd = (Mat_<double>(3, 1) << 0.366,1.366,0);
 	Pose Tsd(Rsd,tsd);
 	cout << "Tsd="<<endl<<Tsd<<endl;
-	state=RR.ikStep(state,Tsd.log());
+	state=RR.ikBodyStep(state,Tsd);
 	for(double d:state) cout <<d<<",";
 	cout<<endl;
 	cout << "T="<<endl<<RR.forwardBody(state)<<endl;

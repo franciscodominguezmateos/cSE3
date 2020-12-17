@@ -12,7 +12,14 @@
 using namespace std;
 using namespace cv;
 
-const static double PI=3.14159265358979;
+const static double PI=3.141592653589793;
+
+/* ANGULAR CONVERSION */
+static const double DEG2RAD=M_PI/180.0;
+static const double RAD2DEG=180.0/M_PI;
+inline double deg2rad(double a){return a*DEG2RAD;}
+inline double rad2deg(double r){return r*RAD2DEG;}
+
 const static Mat I=Mat::eye(3,3,CV_64F);
 const static Mat Z=Mat::zeros(3,3,CV_64F);
 

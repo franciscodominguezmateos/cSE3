@@ -20,6 +20,7 @@ class OpenChainBody{
 public:
 	OpenChainBody(vector<ScrewAxis> tw,Pose h):joints(tw),home(h){
 		J.resize(tw.size());
+		Jb.resize(tw.size());
 	}
 	/*  S P A C E  */
 	Pose forwardUpTo(int N,vector<double> &states){
@@ -94,11 +95,20 @@ public:
 		}
 		return m;
 	}
-	vector<double> ikBodyStep(vector<double> &states,Twist goal){
+	vector<double> ikBodyStep(vector<double> &states,Pose goal){
+		Pose Tsb=forwardBody(states);
+		cout <<"Tsb="<<endl<<Tsb<<endl;
+		cout <<"Tsd="<<endl<<goal<<endl;
+		Twist tbgoal=goal-Tsb;
+		Pose Tbd=-Tsb+goal;
+		cout <<"Tbd="<<endl<<Tbd<<endl;
+		Pose Tsd1=Tsb+Tbd;
+		cout <<"Tsd1="<<endl<<Tsd1<<endl;
+		cout << "tbgoal="<<Tbd.log()<<endl;
 		Mat j=jacobianBody(states);
 		Mat Jpinv;
 		invert(j, Jpinv, DECOMP_SVD);
-		Mat dState=Jpinv*goal.asMat();
+		Mat dState=Jpinv*tbgoal.asMat();
 		printMat(j);
 		vector<double> r=states;
 		for(unsigned int i=0;i<r.size();i++){
