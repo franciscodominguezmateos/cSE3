@@ -68,10 +68,12 @@ public:
 	/*  B O D Y  */
 	Pose backwardDownTo(int N,vector<double> &states){
 		Pose p;
-		for(int i=joints.size()-1;i>=N;i--){
+		int i=joints.size()-1;
+		while(i>N){
 			ScrewAxis &sa=joints[i];
 			double state=states[i];
 			p=p+sa*state;
+			i--;
 		}
 		return p;
 	}
@@ -89,32 +91,30 @@ public:
 	Mat jacobianBody(vector<double> &states){
 		buildJacobianBodyColumns(states);
 		Mat m=Jb[0].asMat();
-		for(unsigned int i=0;i<J.size();i++){
+		for(unsigned int i=1;i<J.size();i++){
 			Mat mj=Jb[i].asMat();
 			hconcat(m,mj,m);
 		}
 		return m;
 	}
 	vector<double> ikBodyStep(vector<double> &states,Pose goal){
+		Pose&Tsd=goal;
 		Pose Tsb=forwardBody(states);
-		cout <<"Tsb="<<endl<<Tsb<<endl;
-		cout <<"Tsd="<<endl<<goal<<endl;
-		Twist tbgoal=goal-Tsb;
-		Pose Tbd=-Tsb+goal;
-		cout <<"Tbd="<<endl<<Tbd<<endl;
-		Pose Tsd1=Tsb+Tbd;
-		cout <<"Tsd1="<<endl<<Tsd1<<endl;
-		cout << "tbgoal="<<Tbd.log()<<endl;
+		Twist tbd=Tsd-Tsb;
+		cout << "tbd="<<tbd<<endl;
 		Mat j=jacobianBody(states);
 		Mat Jpinv;
 		invert(j, Jpinv, DECOMP_SVD);
-		Mat dState=Jpinv*tbgoal.asMat();
+		Mat dState=Jpinv*tbd.asMat();
+		cout <<"J="<<endl;
 		printMat(j);
+		cout << "Ji="<<endl;
+		printMat(Jpinv);
 		vector<double> r=states;
 		for(unsigned int i=0;i<r.size();i++){
 			r[i]+=dState.at<double>(i,1);
 		}
-		cout << dState<<endl;
+		cout << "dState="<< dState<<endl;
 		return r;
 	}
 };

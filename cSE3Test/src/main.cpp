@@ -163,14 +163,13 @@ void example_6_1(){
 	cout << "Tsb0="<<endl<< Tsb0 <<endl;
 	cout << "Vb="<< Tsb0.log()<<endl;
 	Mat Rsd = (Mat_<double>(3, 3) <<-0.5  , -0.866, 0,
-			                         0.866, -0.5  , 1,
-			                         0    ,  1    , 0);
+			                         0.866, -0.5  , 0,
+			                         0    ,  0    , 1);
 	Mat tsd = (Mat_<double>(3, 1) << 0.366,1.366,0);
 	Pose Tsd(Rsd,tsd);
 	cout << "Tsd="<<endl<<Tsd<<endl;
 	state=RR.ikBodyStep(state,Tsd);
-	for(double d:state) cout <<d<<",";
-	cout<<endl;
+	cout <<"state=";for(double d:state) cout <<rad2deg(d)<<",";cout<<endl;
 	cout << "T="<<endl<<RR.forwardBody(state)<<endl;
 }
 int main(){
