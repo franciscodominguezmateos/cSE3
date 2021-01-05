@@ -12,22 +12,27 @@
 using namespace std;
 using namespace cv;
 
-const static double PI=3.141592653589793;
+//const static double PI=3.141592653589793;
 
 /* ANGULAR CONVERSION */
-static const double DEG2RAD=M_PI/180.0;
-static const double RAD2DEG=180.0/M_PI;
-inline double deg2rad(double a){return a*DEG2RAD;}
-inline double rad2deg(double r){return r*RAD2DEG;}
+//static const double DEG2RAD=M_PI/180.0;
+//static const double RAD2DEG=180.0/M_PI;
+//inline double deg2rad(double a){return a*DEG2RAD;}
+//nline double rad2deg(double r){return r*RAD2DEG;}
 
 const static Mat I=Mat::eye(3,3,CV_64F);
 const static Mat Z=Mat::zeros(3,3,CV_64F);
 
+template<class S=double>
 inline void printMat(Mat m){
+	//cout<<"pose_util::printMat()"<<endl;
+	cout.setf(ios::fixed);
+	cout.setf(ios::showpoint);
+	cout.precision(3);
 	int i,j;
 	for(i=0;i<m.rows;i++){
 		for(j=0;j<m.cols;j++){
-			double d=m.at<double>(i,j);
+			double d=m.at<S>(i,j);
 			if(d>=0) cout <<" ";
 			cout << d;
 			if(j!=m.cols-1 || i!=m.rows-1) cout<<",";

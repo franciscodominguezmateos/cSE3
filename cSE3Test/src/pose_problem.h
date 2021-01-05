@@ -13,7 +13,7 @@ public:
 	virtual Mat gradEls()  =0;
 	virtual double  Els()  =0;
 	virtual Pose &getPose()=0;
-	virtual Mat rCol(int i)=0;
+	virtual Mat res(int i) =0;
 	virtual Mat Jres(int i)=0;
 };
 

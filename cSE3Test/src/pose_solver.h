@@ -31,7 +31,7 @@ public:
 		for(int i=0;i<p->size();i++){
 			Mat J=p->Jres(i);
 			Mat JT=J.t();
-			Mat re=p->rCol(i);
+			Mat re=p->res(i);
 			H+=JT*J;
 			g+=JT*re;
 		}

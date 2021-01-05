@@ -33,18 +33,19 @@ public:
 	//Error less square Els=sum(r2).val(0)
 	double Els(){build();return sum(r2)[0]/double(r2.cols);}
 	inline Mat qCol(int i){return Mat(q,Range(0,3),Range(i,i+1));}
-	Mat rCol(int i){return Mat(r,Range(0,3),Range(i,i+1));}
-	Mat Jres(int i){return -T.Jaction(Vec3d(qCol(i)));}
+	       Mat res (int i){return Mat(r,Range(0,3),Range(i,i+1));}
+	       Mat Jres(int i){return -T.Jaction(Vec3d(qCol(i)));}
 	//Gradient of error with respecto to parameter of T
+	//this function is generic and could be in pose_solver¿?¿?¿?¿?
 	Mat gradEls(){
 		//Jacobian of Els
-		Mat jEls=Mat::zeros(Size(1,6),CV_64F);
+		Mat gEls=Mat::zeros(Size(1,6),CV_64F);
 		for(int i=0;i<size();i++){
 			Mat Jr=Jres(i);
-			Mat gradR=Jr.t()*rCol(i);
-			jEls+=gradR;
+			Mat gradR=Jr.t()*res(i);
+			gEls+=gradR;
 		}
-		return jEls/double(size());
+		return gEls/double(size());
 	}
 	Pose &getPose(){return T;}
 };

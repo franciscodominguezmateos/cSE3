@@ -5,8 +5,7 @@
  *      Author: Francisco Dominguez
  */
 
-#ifndef POSE_H_
-#define POSE_H_
+#pragma once
 #include "pose_util.h"
 #include "twist.h"
 
@@ -215,4 +214,3 @@ inline ostream& operator<<(ostream& os,const Pose& p){
 inline Pose exp(Twist tw){return Pose::exp(tw);}
 inline Twist log(Pose p){return p.log();}
 typedef Pose Joint;
-#endif /* POSE_H_ */
