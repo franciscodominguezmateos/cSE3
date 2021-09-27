@@ -22,7 +22,7 @@ public:
 			m.at<double>(3,0),
 			m.at<double>(4,0),
 			m.at<double>(5,0)){}
-	Twist(Vec3d w,Vec3d v):w(w),v(v){}
+	inline Twist(Vec3d w,Vec3d v):w(w),v(v){}
 	inline Vec3d getW(){return w;}
 	inline Vec3d getV(){return v;}
 	inline Vec3d getM(){return w;}

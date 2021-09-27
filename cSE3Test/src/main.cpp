@@ -26,37 +26,51 @@ void example_3_19(){
 			                    1,   0,   0);
 	t = (Mat_<double>(3, 1) << 30.0,-40,25.0);
 	Pose Tbc(R,t);
-	Pose Tae=Tad+Tde;
-	Pose Tac=Tad+Tdb+Tbc;
+	Pose Tae =Tad+Tde;
+	Pose Tac =Tad+Tdb+Tbc;
 	Pose Taci=-Tac;
-	Pose Tce=Taci+Tae;
-	cout << "Tae="<< Tae << endl;
-	cout << "Tac="<< Tac<<endl;
-	cout << "Taci="<< Taci<<endl;
-	cout << "Tce="<< Tce<<endl;
-	cout << "I="<< Tac+Taci<<endl;
+	Pose Tce =Taci+Tae;
+	cout << "Tae=" << Tae     << endl;
+	cout << "Tac=" << Tac     << endl;
+	cout << "Taci="<< Taci    << endl;
+	cout << "Tce=" << Tce     << endl;
+	cout << "I="   << Tac+Taci<< endl;
 }
 void example_3_23(){
-	Twist Vs(0,0,2,-2,-4,0);
-	Twist Vb(0,0,-2,2.8,4,0);
+	// Twist rotation axis
+	Vec3d ws(0, 0  , 2);
+	Vec3d wb(0, 0  ,-2);
+	// Twist point in line of rotation axis
+	Vec3d rs(2,-1  , 0);
+	Vec3d rb(2,-1.4, 0);
+	// Twist velocity (this is not linear velocity)
+	Vec3d vs(rs.cross(ws));
+	Vec3d vb(rb.cross(wb));
+	// Twists
+	Twist Vs(ws,vs);
+	Twist Vb(wb,vb);
+	//Twist Vs(0,0,2,-2,-4,0);
+	//Twist Vb(0,0,-2,2.8,4,0);
 	Mat R = (Mat_<double>(3, 3) << -1, 0, 0,
 			                        0, 1, 0,
 			                        0, 0,-1);
 	Mat t = (Mat_<double>(3, 1) << 4.0,0.4,0.0);
 	Pose Tsb(R,t);
 	Twist r=Tsb.Ad(Vb);
+	cout << "Vs=" << Vs << endl;
+	cout << "Vb=" << Vb << endl;
 	cout << "r="<<r<<endl;
 }
 void example_3_26(){
-	Pose Tsb=Pose(30,1,2);
+	Pose Tsb(30,1,2);
 	Pose Tsc(60,2,1);
-	Pose Ti=Tsc+-Tsb;//Tsc=Ti+Tsb
+	Pose Ti=Tsc+-Tsb;//Tsc=Ti+Tsb NOT Tsc=Tsb+Tbc => Tbc=-Tsb+Tsc AND Tsb=Tsc+Tcb => Tsc=Tsb+-Tcb OR Tcb=-Tsc+Tsb
 	Twist tw=Ti.log();
-	cout << "Tsb="<<endl<< Tsb<<endl;
-	cout << "Tsc="<<endl<<Tsc<<endl;
+	cout << "Tsb="<<endl<<Tsb   <<endl;
+	cout << "Tsc="<<endl<<Tsc   <<endl;
 	cout << "Tsc:"<<endl<<Ti+Tsb<<endl;
-	cout << "Ti="<<endl<<Ti<<endl;
-	cout << "Ti="<<endl;
+	cout << "Ti ="<<endl<<Ti    <<endl;
+	cout << "Ti ="<<endl;
 	printMat(Ti.AdMat());
 	cout << "tw="<<tw<<endl;
 	cout << "sa="<<tw.getScrewAxis()<<"theta="<<tw.getTheta()<<endl;
@@ -93,6 +107,7 @@ void example_3_28(){
 	cout << "wFf="<<wFf<<endl;
 
 }
+//Universal Robots' UR5 6R robot arm
 void example_4_6(){
 	double L1=0.425;
 	double L2=0.392;
@@ -121,6 +136,7 @@ void example_4_6(){
 	Pose eS2=Pose::exp(axis[1]*state[1]);
 	cout << "eS2="<<endl<<eS2<<endl;
 }
+//Barret Technology's WAM 7R robot arm
 void example_4_7(){
 	//It is end-effector frame
 	double L1=0.550;
@@ -176,7 +192,7 @@ int main(){
 	cout.setf(ios::fixed);
 	cout.setf(ios::showpoint);
 	cout.precision(3);
-   //example_3_19();
+    //example_3_19();
 	//example_3_23();
 	//example_3_26();
 	//example_3_28();

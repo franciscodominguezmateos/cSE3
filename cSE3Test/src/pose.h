@@ -14,14 +14,15 @@ class Pose{
 	Mat t;// (3x1)
 public:
 	Pose():R(I),t(Mat::zeros(3,1,CV_64F)){}
+	// Just three values a  2D pose
 	Pose(double theta_deg,double x,double y){
 		const double DEG_TO_RAD=3.14159265358979/180;
 		double theta=theta_deg*DEG_TO_RAD;
 		double sw=sin(theta);
 		double cw=cos(theta);
 		R=(Mat_<double>(3,3)<<cw,-sw,0,
-				sw,cw,0,
-				0,0,1);
+				              sw ,cw,0,
+				               0,  0,1);
 		t=(Mat_<double>(3,1)<<x,y,0);
 	}
 	Pose(Mat R,Mat t):R(R),t(t){}

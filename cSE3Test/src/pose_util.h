@@ -12,13 +12,13 @@
 using namespace std;
 using namespace cv;
 
-//const static double PI=3.141592653589793;
+const static double PI=3.141592653589793;
 
 /* ANGULAR CONVERSION */
-//static const double DEG2RAD=M_PI/180.0;
-//static const double RAD2DEG=180.0/M_PI;
-//inline double deg2rad(double a){return a*DEG2RAD;}
-//nline double rad2deg(double r){return r*RAD2DEG;}
+static const double DEG2RAD=M_PI/180.0;
+static const double RAD2DEG=180.0/M_PI;
+inline double deg2rad(double a){return a*DEG2RAD;}
+inline double rad2deg(double r){return r*RAD2DEG;}
 
 const static Mat I=Mat::eye(3,3,CV_64F);
 const static Mat Z=Mat::zeros(3,3,CV_64F);
@@ -28,7 +28,7 @@ inline void printMat(Mat m){
 	//cout<<"pose_util::printMat()"<<endl;
 	cout.setf(ios::fixed);
 	cout.setf(ios::showpoint);
-	cout.precision(3);
+	cout.precision(5);
 	int i,j;
 	for(i=0;i<m.rows;i++){
 		for(j=0;j<m.cols;j++){
@@ -90,7 +90,7 @@ inline Vec3d log(Mat R){
 		return Vec3d(0,0,0);
 	}
 	double theta;
-	//TODO
+	//TODO for W
 	if(tr<1+0.001 && tr>1-0.001){
 		theta=3.14159265358979;
 	}
