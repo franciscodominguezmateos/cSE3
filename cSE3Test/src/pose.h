@@ -75,7 +75,7 @@ public:
 	inline Mat T(){return asMat();}
 	inline Twist log(){
 		double tr=trace(R);
-		if(tr<0.001){
+		if(tr>3.0-1e-6){
 			double l=norm(t);
 			Mat vn=t/l;
 			Vec3d v(vn.at<double>(0,0),vn.at<double>(1,0),vn.at<double>(2,0));

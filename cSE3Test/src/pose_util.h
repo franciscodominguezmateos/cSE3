@@ -86,7 +86,7 @@ inline Mat exp(Vec3d w){
 inline Mat exp(Vec3d wn,double theta){return exp(wn*theta);}
 inline Vec3d log(Mat R){
 	double tr=trace(R);
-	if(tr>=2.999){//R==I
+	if(tr>=3.0-1e-6){//R==I
 		return Vec3d(0,0,0);
 	}
 	double theta;

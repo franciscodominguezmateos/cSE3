@@ -161,6 +161,7 @@ void example_4_7(){
 	state[5]=-PI/2.0;
 	cout << "T="<<endl<< Wam7R.forwardBody(state)<<endl;
 }
+//29/09/2021 it works!!
 void example_6_1(){
 	//It is end-effector frame
 	double L1=1;
@@ -177,13 +178,20 @@ void example_6_1(){
 	state[1]= deg2rad(30);
 	Pose Tsb0=RR.forwardBody(state);
 	cout << "Tsb0="<<endl<< Tsb0 <<endl;
-	cout << "Vb="<< Tsb0.log()<<endl;
+	cout << "Vb0="<< Tsb0.log()<<endl;
 	Mat Rsd = (Mat_<double>(3, 3) <<-0.5  , -0.866, 0,
 			                         0.866, -0.5  , 0,
 			                         0    ,  0    , 1);
 	Mat tsd = (Mat_<double>(3, 1) << 0.366,1.366,0);
 	Pose Tsd(Rsd,tsd);
 	cout << "Tsd="<<endl<<Tsd<<endl;
+	cout <<"state=";for(double d:state) cout <<rad2deg(d)<<",";cout<<endl;
+	state=RR.ikBodyStep(state,Tsd);
+	cout <<"state=";for(double d:state) cout <<rad2deg(d)<<",";cout<<endl;
+	cout << "T="<<endl<<RR.forwardBody(state)<<endl;
+	state=RR.ikBodyStep(state,Tsd);
+	cout <<"state=";for(double d:state) cout <<rad2deg(d)<<",";cout<<endl;
+	cout << "T="<<endl<<RR.forwardBody(state)<<endl;
 	state=RR.ikBodyStep(state,Tsd);
 	cout <<"state=";for(double d:state) cout <<rad2deg(d)<<",";cout<<endl;
 	cout << "T="<<endl<<RR.forwardBody(state)<<endl;

@@ -8,9 +8,7 @@
 #include <vector>
 #include "pose.h"
 
-class GeneralizedCoord : public Mat{
-
-};
+class GeneralizedCoord : public Mat{};
 class OpenChainBody{
 	vector<ScrewAxis> joints;
 	//jacobian columns
@@ -97,24 +95,29 @@ public:
 		}
 		return m;
 	}
-	vector<double> ikBodyStep(vector<double> &states,Pose goal){
+	vector<double> ikBodyStep(vector<double> &states,Pose& goal){
 		Pose&Tsd=goal;
 		Pose Tsb=forwardBody(states);
 		Twist tbd=Tsd-Tsb;
 		cout << "tbd="<<tbd<<endl;
+		//Pose Tsdi=Tsb+tbd;
+		//cout <<"Tsdi"<<endl;
+		//cout << Tsdi <<endl;
 		Mat j=jacobianBody(states);
 		Mat Jpinv;
 		invert(j, Jpinv, DECOMP_SVD);
 		Mat dState=Jpinv*tbd.asMat();
-		cout <<"J="<<endl;
-		printMat(j);
-		cout << "Ji="<<endl;
-		printMat(Jpinv);
+		//cout <<"J="<<endl;
+		//printMat(j);
+		//cout << "Ji="<<endl;
+		//printMat(Jpinv);
 		vector<double> r=states;
 		for(unsigned int i=0;i<r.size();i++){
-			r[i]+=dState.at<double>(i,1);
+			double dStatei=dState.at<double>(i,0);
+			r[i]+=dStatei;
+			//cout << "r["<<i<<"]="<<rad2deg(r[i])<<" dSi="<<rad2deg(dStatei)<<endl;
 		}
-		cout << "dState="<< dState<<endl;
+		//cout << "dState="<< dState<<endl;
 		return r;
 	}
 };
