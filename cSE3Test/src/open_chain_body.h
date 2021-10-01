@@ -8,7 +8,8 @@
 #include <vector>
 #include "pose.h"
 
-class GeneralizedCoord : public vector<double>{};
+//class GeneralizedCoord : public vector<double>{};
+using GeneralizedCoord=vector<double>;
 class OpenChainBody{
 	vector<ScrewAxis> joints;
 	//jacobian columns
@@ -67,7 +68,7 @@ public:
 	Pose backwardDownTo(int N,GeneralizedCoord &states){
 		Pose p;
 		int i=joints.size()-1;
-		while(i>N){
+		while(i>=N){
 			ScrewAxis &sa=joints[i];
 			double state=states[i];
 			p=sa*state+p;
@@ -77,7 +78,7 @@ public:
 	}
 	Pose forwardBody(GeneralizedCoord &states){
 		//Pose p=forwardUpTo(joints.size(),states);
-		Pose p=backwardDownTo(joints.size(),states);
+		Pose p=backwardDownTo(0,states);
 		p=home+p;
 		return p;
 	}
