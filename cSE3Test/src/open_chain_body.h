@@ -8,7 +8,7 @@
 #include <vector>
 #include "pose.h"
 
-class GeneralizedCoord : public Mat{};
+class GeneralizedCoord : public vector<double>{};
 class OpenChainBody{
 	vector<ScrewAxis> joints;
 	//jacobian columns
@@ -21,7 +21,7 @@ public:
 		Jb.resize(tw.size());
 	}
 	/*  S P A C E  */
-	Pose forwardUpTo(int N,vector<double> &states){
+	Pose forwardUpTo(int N,GeneralizedCoord &states){
 		Pose p;
 		for(int i=0;i<N;i++){
 			ScrewAxis &sa=joints[i];
@@ -30,18 +30,18 @@ public:
 		}
 		return p;
 	}
-	Pose forward(vector<double> &states){
+	Pose forward(GeneralizedCoord &states){
 		Pose p=forwardUpTo(joints.size(),states);
 		p=p+home;
 		return p;
 	}
-	void buildJacobianColumns(vector<double> &states){
+	void buildJacobianColumns(GeneralizedCoord &states){
 		for(unsigned int i=0;i<states.size();i++){
 			Pose p=forwardUpTo(i,states);
 			J[i]=p.Ad(joints[i]);
 		}
 	}
-	Mat jacobian(vector<double> &states){
+	Mat jacobian(GeneralizedCoord &states){
 		buildJacobianColumns(states);
 		Mat m=J[0].asMat();
 		for(unsigned int i=1;i<J.size();i++){
@@ -50,7 +50,7 @@ public:
 		}
 		return m;
 	}
-	vector<double> ikStep(vector<double> &states,Twist goal){
+	vector<double> ikStep(GeneralizedCoord &states,Twist goal){
 		Mat j=jacobian(states);
 		Mat Jpinv;
 		invert(j, Jpinv, DECOMP_SVD);
@@ -64,7 +64,7 @@ public:
 		return r;
 	}
 	/*  B O D Y  */
-	Pose backwardDownTo(int N,vector<double> &states){
+	Pose backwardDownTo(int N,GeneralizedCoord &states){
 		Pose p;
 		int i=joints.size()-1;
 		while(i>N){
@@ -75,18 +75,19 @@ public:
 		}
 		return p;
 	}
-	Pose forwardBody(vector<double> &states){
-		Pose p=forwardUpTo(joints.size(),states);
+	Pose forwardBody(GeneralizedCoord &states){
+		//Pose p=forwardUpTo(joints.size(),states);
+		Pose p=backwardDownTo(joints.size(),states);
 		p=home+p;
 		return p;
 	}
-	void buildJacobianBodyColumns(vector<double> &states){
+	void buildJacobianBodyColumns(GeneralizedCoord &states){
 		for(unsigned int i=0;i<states.size();i++){
 			Pose p=-backwardDownTo(i,states);
 			Jb[i]=p.Ad(joints[i]);
 		}
 	}
-	Mat jacobianBody(vector<double> &states){
+	Mat jacobianBody(GeneralizedCoord &states){
 		buildJacobianBodyColumns(states);
 		Mat m=Jb[0].asMat();
 		for(unsigned int i=1;i<J.size();i++){
@@ -95,7 +96,7 @@ public:
 		}
 		return m;
 	}
-	vector<double> ikBodyStep(vector<double> &states,Pose& goal){
+	vector<double> ikBodyStep(GeneralizedCoord &states,Pose& goal){
 		Pose&Tsd=goal;
 		Pose Tsb=forwardBody(states);
 		Twist tbd=Tsd-Tsb;

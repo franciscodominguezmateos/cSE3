@@ -173,7 +173,7 @@ void example_6_1(){
 			{0,0,1, 0,L1   ,0}
 	};
 	OpenChainBody RR(axis,M);
-	vector<double> state(axis.size());
+	GeneralizedCoord state(axis.size());
 	state[0]= 0.0;
 	state[1]= deg2rad(30);
 	Pose Tsb0=RR.forwardBody(state);
