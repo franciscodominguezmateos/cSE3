@@ -10,6 +10,16 @@
 
 //class GeneralizedCoord : public vector<double>{};
 using GeneralizedCoord=vector<double>;
+ostream& operator<<(ostream& o,const GeneralizedCoord& state){
+	unsigned int i=0;
+	for(;i<state.size()-1;i++){
+		double d=state[i];
+		o<<d<<",";
+	}
+	double d=state[i];
+	o<<d;
+	return o;
+}
 class OpenChainBody{
 	vector<ScrewAxis> joints;
 	//jacobian columns
